@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eye Gender Detective 🕵‍♀</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            min-height: 100vh;
+            background:#274c77;
+            background:;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #a3cef1;
+            padding: 20px;
+        }
+        
+        .container {
+            font-family:math Verdana, Geneva, Tahoma, sans-serif bold Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+            background:#274c77;
+            backdrop-filter: blur(15px);
+            border-radius: 16px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(46, 24, 24, 0.3);
+            border: 1px solid rgba(168, 179, 182, 0.1);
+            text-align: center;
+            max-width: 700px;
+            width: 100%;
+        }
+        
+        h1 {
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            color: #ffedd2;
+            font-weight: 600;
+        }
+        
+        .subtitle {
+            font-size: 1rem;
+            margin-bottom: 35px;
+            opacity: 0.8;
+            color: #ffffff;
+            font-weight: 300;
+        }
+        
+        #videoContainer {
+            position: relative;
+            margin: 20px 0;
+            border-radius: px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(248, 247, 247, 0.3);
+        }
+        /* camera frame*/
+        #video  {
+            width: 100%;
+            max-width: 900px;
+            height: 350px;
+            object-fit: cover;
+            display: block;
+            border: 3px solid #070c0f;
+        }
+        
+        #canvas {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            pointer-events: none;
+        }
+        
+        button {
+            background: linear-gradient(135deg, #545eca, #424cb4);
+            border: none;
+            padding: 12px 28px;
+            border-radius: 8px;
+            color: white;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin: 8px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 2, 3, 0.4);
+            background: linear-gradient(135deg, #2f57ae, #3498db);
+        }
+        
+        button:disabled {
+            background: #e2ebec;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        #result {
+            margin-top: 25px;
+            padding: 25px;
+            background: rgba(44, 62, 80, 0.7);
+            border-radius: 12px;
+            min-height: 90px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            font-weight: 500;
+            border-left: 4px solid #3498db;
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 10px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .disclaimer {
+            margin-top: 20px;
+            font-size: 0.9rem;
+            opacity: 0.7;
+            font-style: italic;
+        }
+        
+        .eye-box {
+            position: absolute;
+            border: 2px dashed #1d0e0c;
+            border-radius: 50%;
+            background: rgba(231, 76, 60, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>👁IriSpy</h1>
+        <p class="subtitle">The most scientifically questionable gender detector ever created!</p>
+        
+        <div id="videoContainer">
+            <video id="video" autoplay muted playsinline></video>
+            <canvas id="canvas"></canvas>
+        </div>
+        
+        <button id="startBtn" onclick="startCamera()">Initialize Camera</button>
+        <button id="detectBtn" onclick="detectGender()" disabled>Analyze Biometrics</button>
+        
+        <div id="result">
+            Click "Initialize Camera" to begin the professional biometric analysis system.
+        </div>
+        
+        <p class="disclaimer">
+            <strong>Disclaimer:</strong> This app is just for fun! Trying to guess your gender from biometrics is like asking a cat to do your taxes — entertaining,
+             but don’t trust the results. Science says nope! 
+        </p>
+    </div>
+
+    <script>
+        let video, canvas, ctx;
+        let isDetecting = false;
+        
+        const sarcasticResponses = [
+            {
+                gender: "Male",
+                confidence: "99.7%",
+                reason: "അവന്റെ കണ്ണ് കണ്ട് എന്റെ Bluetooth തന്നെ കണക്റ്റായി.",
+              
+            },
+            {
+                gender: "Female", 
+                confidence: "87.3%",
+                reason: "",
+                sass: "The eye-roll potential is off the charts!"
+            },
+            {
+                gender: "Lesbian",
+                confidence: "94.2%", 
+                reason: "Tകണ്ണ് കണ്ടപ്പോൾ ഞാൻ rainbow പോലെ ഉള്ളിൽ പൂക്കി..."
+                
+            },
+            {
+                gender: "Gay",
+                confidence: "100%",
+                reason: "കണ്ണ് കണ്ടപ്പോൾ straight ആയ life crash ആയി...."
+                
+            },
+            {
+                gender: "Bisexual",
+                confidence: "76.8%",
+                reason: "എന്ത് കണ്ണായാലും നിന്റെ ഹൃദയം react ചെയ്യുന്നുണ്ട്...",
+                
+            },
+            {
+                gender: "Queer",
+                confidence: "91.4%",
+                reason: "കണ്ണ് ആരുടെയായാലും, നോക്കിയാൽ soul അകത്തേക്ക് വലിക്കും...."
+            
+            },
+            {
+                gender: "Undifined",
+                confidence: "85.9%",
+                reason: "നീ ഒക്കെ എന്തടാ.. "
+              
+            },
+            {
+                gender: "sigma",
+                confidence: "85.9%",
+                reason: "മോണേ, നീ sigma അടാ!.."
+                
+            }
+        ];
+        
+        async function startCamera() {
+            try {
+                video = document.getElementById('video');
+                canvas = document.getElementById('canvas');
+                ctx = canvas.getContext('2d');
+                
+                const stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { 
+                        width: { ideal: 640 },
+                        height: { ideal: 480 },
+                        facingMode: 'user'
+                    } 
+                });
+                
+                video.srcObject = stream;
+                video.onloadedmetadata = () => {
+                    canvas.width = video.videoWidth;
+                    canvas.height = video.videoHeight;
+                    canvas.style.width = video.offsetWidth + 'px';
+                    canvas.style.height = video.offsetHeight + 'px';
+                };
+                
+                document.getElementById('startBtn').disabled = true;
+                document.getElementById('detectBtn').disabled = false;
+                document.getElementById('result').innerHTML = "✅ Camera initialized successfully. Ready for analysis.";
+                
+            } catch (error) {
+                document.getElementById('result').innerHTML = "❌ Camera access denied. Please allow camera permissions and refresh.";
+                console.error('Camera error:', error);
+            }
+        }
+        
+        function drawFakeEyeDetection() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw more precise eye detection boxes (closer to actual eye positions)
+            const eyeBoxes = [
+                { x: canvas.width * 0.30, y: canvas.height * 0.40, width: 45, height: 30 },
+                { x: canvas.width * 0.60, y: canvas.height * 0.40, width: 45, height: 30 }
+            ];
+            
+            ctx.strokeStyle = '#e74c3c';
+            ctx.lineWidth = 2;
+            
+            eyeBoxes.forEach(box => {
+                ctx.beginPath();
+                ctx.ellipse(box.x, box.y, box.width/2, box.height/2, 0, 0, 2 * Math.PI);
+                ctx.stroke();
+                
+                // Add crosshair in center of each eye
+                ctx.beginPath();
+                ctx.moveTo(box.x - 10, box.y);
+                ctx.lineTo(box.x + 10, box.y);
+                ctx.moveTo(box.x, box.y - 10);
+                ctx.lineTo(box.x, box.y + 10);
+                ctx.stroke();
+            });
+            
+            // Add scanning effect
+            ctx.strokeStyle = '#3498db';
+            ctx.lineWidth = 1;
+            ctx.setLineDash([5, 5]);
+            ctx.beginPath();
+            ctx.moveTo(0, canvas.height * 0.40);
+            ctx.lineTo(canvas.width, canvas.height * 0.40);
+            ctx.stroke();
+            ctx.setLineDash([]);
+        }
+        
+        function detectGender() {
+            if (isDetecting) return;
+            isDetecting = true;
+            
+            document.getElementById('detectBtn').disabled = true;
+            document.getElementById('result').innerHTML = '<div class="loading"></div>Processing biometric data...';
+            
+            // Show fake detection animation
+            drawFakeEyeDetection();
+            
+            setTimeout(() => {
+                const response = sarcasticResponses[Math.floor(Math.random() * sarcasticResponses.length)];
+                
+                document.getElementById('result').innerHTML = `
+                    <div style="text-align: left; max-width: 450px;">
+                        <div style="font-size: 1.2rem; margin-bottom: 12px; color: #3498db;">
+                            <strong>Analysis Result:</strong> ${response.gender}
+                        </div>
+                        <div style="margin-bottom: 10px; color: #95a5a6;">
+                            <strong>Confidence Level:</strong> ${response.confidence}
+                        </div>
+                        <div style="margin-bottom: 10px; color: #ecf0f1;">
+                            <strong>Technical Assessment:</strong> ${response.reason}
+                        </div>
+                        <div style="font-style: italic; color: #f39c12; padding-top: 8px; border-top: 1px solid rgba(149, 165, 166, 0.3);">
+                            ${response.sass}
+                        </div>
+                    </div>
+                `;
+                
+                document.getElementById('detectBtn').disabled = false;
+                isDetecting = false;
+                
+                // Clear detection boxes after a few seconds
+                setTimeout(() => {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                }, 4000);
+                
+            }, 3000);
+        }
+        
+        // Add some fun keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space' && !document.getElementById('detectBtn').disabled) {
+                e.preventDefault();
+                detectGender();
+            }
+        });
+    </script>
+</body>
+</html>
